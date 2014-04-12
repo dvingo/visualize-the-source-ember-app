@@ -1,5 +1,7 @@
 {
   "predef": {
+    "d3": true,
+    "console": true,
     "document": true,
     "window": true,
     "location": true,

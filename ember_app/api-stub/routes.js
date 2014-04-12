@@ -4,26 +4,15 @@ module.exports = function(server) {
   // have to be repeated for each end point.
   server.namespace('/api', function() {
 
-    // Return fixture data for '/api/posts/:id'
-    server.get('/posts/:id', function(req, res) {
-      var post = {
-        "post": {
-          "id": 1,
-          "title": "Rails is omakase",
-          "comments": ["1", "2"],
-          "user" : "dhh"
-        },
-
-        "comments": [{
+    server.get('/directories/:id', function(req, res) {
+      var directory = {
+        "directory": {
           "id": "1",
-          "body": "Rails is unagi"
-        }, {
-          "id": "2",
-          "body": "Omakase O_o"
-        }]
+          "name": "Test Directory",
+          "d3Data": {"id": "1", "name": "Test Directory"}
+        }
       };
-
-      res.send(post);
+      res.send(directory);
     });
   });
 };
