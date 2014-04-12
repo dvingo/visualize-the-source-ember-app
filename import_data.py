@@ -50,7 +50,7 @@ def get_node_from_parent(name, parent_node):
     if len(matched):
         return matched[0].start_node
 
-def get_node_from_ancestor_stack(name, ancestor_stack):
+def get_node_from_ancestor_stack(full_path_name, name, ancestor_stack):
     '''Finds an existing node in Neo4j for the given name from the list
     of ancestors which are py2neo node objects.'''
     existing_node = None
@@ -58,8 +58,16 @@ def get_node_from_ancestor_stack(name, ancestor_stack):
         ancestor_stack.pop()
         if not len(ancestor_stack):
             break
-        existing_node = get_node_from_parent(name, ancestor_stack[-1])
+        temp_node = get_node_from_parent(name, ancestor_stack[-1])
+        if temp_node and path_matches_file_system(full_path_name, ancestor_stack):
+            existing_node = temp_node
     return existing_node
+
+def path_matches_file_system(file_path_name, ancestor_list):
+    ancestor_fs_path = os.path.join(
+        *map(lambda x: x.get_properties()['name'], ancestor_list))
+    file_dirname = os.path.dirname(file_path_name)
+    return  os.path.samefile(file_dirname, ancestor_fs_path)
 
 graph_db = neo4j.GraphDatabaseService("http://localhost:7474/db/data/")
 path = './ember.js'
@@ -77,7 +85,7 @@ for root, dirs, files in os.walk(path, topdown=True):
     else:
         current_root = get_node_from_parent(root_name, current_root)
         if current_root is None:
-            current_root = get_node_from_ancestor_stack(root_name, parent_stack)
+            current_root = get_node_from_ancestor_stack(root, root_name, parent_stack)
     parent_stack.append(current_root)
     num_dirs += len(dirs)
     num_files += len(files)
