@@ -9,19 +9,8 @@ var tree = (function() {
       clickContext,
       j = 0,
       separation = function(a, b) {
-        //var retVal = a.depth * b.depth * 100;
         return 2;
-        //var retVal = a.depth * b.depth * 10;
-        //console.log("in separation, returning: ", retVal);
-        //return retVal;
       },
-      //separation2 = function(a,b) {
-      //   if (a.parent === b.parent) {
-      //     return 2;
-      //   } else {
-      //     return 3;
-      //   }
-      //}
       diagonal = d3.svg.diagonal()
         .projection(function(d) {
           return [d.x, d.y];
