@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import py2neo
+import uuid
 
 from py2neo import node, neo4j, rel
 from py2neo.neo4j import WriteBatch
@@ -10,7 +11,7 @@ def create_directory_children(dirs, parent):
     where dirs is a list of strings and parent is a py2neo node.'''
     batch = WriteBatch(graph_db)
     for d in dirs:
-        dir_node = batch.create({'name': d})
+        dir_node = batch.create({'name': d, '_id': uuid.uuid4().hex})
         batch.add_labels(dir_node, "Directory")
         batch.create(rel(dir_node, "PARENT", parent))
     batch.run()
@@ -22,7 +23,8 @@ def create_file_children(files, parent, root_path):
     batch = WriteBatch(graph_db)
     for f in files:
         file_content = get_file_content(f, root_path)
-        file_node = batch.create({'name': f, 'content': file_content})
+        file_node = batch.create({'name': f, '_id': uuid.uuid4().hex,
+            'content': file_content})
         batch.add_labels(file_node, 'File')
         batch.create(rel(file_node, "PARENT", parent))
     batch.run()
@@ -40,7 +42,7 @@ def get_file_content(filename, root_path):
     return lines
 
 def create_directory_node(name):
-    dir_node = graph_db.create({'name': name})[0]
+    dir_node = graph_db.create({'name': name, '_id': uuid.uuid4().hex})[0]
     dir_node.add_labels('Directory')
     return dir_node
 

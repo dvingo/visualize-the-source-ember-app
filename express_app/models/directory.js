@@ -36,10 +36,7 @@ Directory.prototype.toJson = function() {
 Directory.get = function(directoryId, callback) {
   var query = [
     "MATCH (d:Directory)<-[:PARENT]-(child1)",
-    // TODO using params is throwing an error.
-    // I think it's due to using the native id(), try adding UUID
-    // during the import and use that as the ID.
-    "WHERE id(d) = " + directoryId,
+    "WHERE d._id = {directoryId}",
     "WITH d, child1",
     "OPTIONAL MATCH (child1)<-[:PARENT]-(child2)",
     "WITH d, child1, child2",
