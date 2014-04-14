@@ -5,6 +5,9 @@ Visualize and browse the Ember.js source code in a D3 powered tree.
 Have the ember app request /api/directories/getRoot
 which will find the root of the ember source and return the tree.
 
+Add an 'root' attribute on nodes and index them. Then you can select which git repo you
+want to visualize.
+
 # Quick start
 
 Assumees Neo4j is installed

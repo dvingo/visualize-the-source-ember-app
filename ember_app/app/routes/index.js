@@ -1,5 +1,1 @@
-export default Ember.Route.extend({
-  model: function() {
-    return this.store.find('directory', 12274);
-  }
-});
+export default Ember.Route.extend({ });
