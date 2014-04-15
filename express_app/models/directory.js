@@ -53,22 +53,6 @@ Directory.get = function(directoryId, callback) {
   });
 };
 
-var getOrPutFromCache = function(obj, cache) {
-  var id = obj.id, retVal, content;
-  if (cache.hasOwnProperty(id)) {
-    console.log('found id in cache for name: ', cache[id].name);
-    return cache[id];
-  }
-  if (obj.data.hasOwnProperty('content')) {
-    content = obj.data.content;
-    retVal = {'id': obj.id, 'name': obj.data.name, 'type': 'file'};//,
-      //'content': obj.data.content};
-  } else {
-    retVal = {'id': obj.id, 'name': obj.data.name, 'type': 'directory'};
-  }
-  cache[id] = retVal;
-  return retVal;
-}
 
 parseDirectoriesFromDB = function(resultsArray, callback) {
   var returnVal = {
@@ -90,6 +74,23 @@ parseDirectoriesFromDB = function(resultsArray, callback) {
       firstLevelChildren[obj.id] = obj;
       console.log('got child1: ', obj.id, ' ', obj.name);
     }
+    if (child1 && child2) {
+      var child1Obj = getOrPutFromCache(child1, cache);
+      var child2Obj = getOrPutFromCache(child2, cache);
+      if (firstLevelChildren.hasOwnProperty(child1Obj)) {
+        existingChild1 = firstLevelChildren[child1Obj.id];
+        if (!existingChild1.hasOwnPropety('children')) {
+          existingChild1.children = [];
+        }
+        existingChild1.children.push(child2Obj);
+      } else {
+        if (!child1Obj.hasOwnProperty('children')) {
+          child1Obj.children = [];
+        }
+        child1Obj.children.push(child2Obj);
+        firstLevelChildren[child1Obj.id] = child1Obj;
+      }
+    }
     //if (child2) {
       //console.log('got child2: ', child2.id, ' ', child2.data.name);
     //}
@@ -105,6 +106,23 @@ parseDirectoriesFromDB = function(resultsArray, callback) {
   callback(returnVal);
 }
 
+var getOrPutFromCache = function(obj, cache) {
+  var id = obj.id, retVal, content;
+  if (cache.hasOwnProperty(id)) {
+    console.log('found id in cache for name: ', cache[id].name);
+    return cache[id];
+  }
+  if (obj.data.hasOwnProperty('content')) {
+    content = obj.data.content;
+    retVal = {'id': obj.id, 'name': obj.data.name, 'type': 'file'};//,
+      //'content': obj.data.content};
+  } else {
+    retVal = {'id': obj.id, 'name': obj.data.name, 'type': 'directory'};
+  }
+  cache[id] = retVal;
+  return retVal;
+}
+
 objToArray = function(obj) {
   var retVal = [];
   for (k in obj)  {
@@ -112,6 +130,7 @@ objToArray = function(obj) {
   }
   return retVal;
 }
+
 Directory.getAll = function (callback) {
     var query = [
         'MATCH (d:Directory)',
