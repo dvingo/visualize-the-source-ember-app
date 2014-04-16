@@ -58,34 +58,73 @@ Directory.get = function(directoryId, callback) {
 };
 
 parseDataForForceDiagram = function(resultsArray, callback) {
-  var nodes = [], links = [], nodeIdToPosition = {};
+  var nodes = [], links = [], nodeIdToPosition = {}, root,
+      linksAlreadyInserted = {};
 
   resultsArray.forEach(function(record) {
-    var root = record['d'],
-        child1 = record['child1'],
+    root = record['d'];
+    var child1 = record['child1'],
         child2 = record['child2'],
         child3 = record['child3'],
         source, target;
-    if (root && child1) {
-      source = root;
-      target = child1;
-    } else if (child1 && child2) {
-      source = child1;
-      target = child2;
-    } else if (child2 && child3) {
-      source = child2;
-      target = child3;
+
+      if (child2 && child3) {
+        //console.log('got 2 and 3: ', child2.data.name, ' ', child3.data.name);
+        //console.log('got 1 and 2: ', child1.data.name, ' ', child2.data.name);
+        ensureLinkExistsBetween(child2, child3);
+        ensureLinkExistsBetween(child1, child2);
+        ensureLinkExistsBetween(root, child1);
+      } else if (child1 && child2) {
+        ensureLinkExistsBetween(child1, child2);
+        ensureLinkExistsBetween(root, child1);
+      } else if (root && child1) {
+        ensureLinkExistsBetween(root, child1);
+      }
+  });
+  callback({directory: {
+    name: root.data.name,
+    id: root.data._id,
+    d3Data: { nodes: nodes, links: links }
+  }});
+
+  function ensureLinkExistsBetween(parent, child) {
+    if (!linkExistsBetween(parent, child)) {
+      console.log("link doesn't exists between parent and child: ", parent.data.name, ' ', child.data.name)
+      console.log();
+      parentIndex = getNodeIndexEnsurePresent(parent);
+      childIndex = getNodeIndexEnsurePresent(child);
+      linksAlreadyInserted[linkKeyFunction(parent, child)] = true;
+      links.push({source: parentIndex, target: childIndex});
     }
-    sourceIndex = getNodeIndex(source, nodeIdToPosition);
-    targetIndex = getNodeIndex(target, nodeIdToPosition);
-    sourceIndex = getNodeInsertIfMissing(sourceIndex, source, nodes, nodeIdToPosition);
-    targetIndex = getNodeInsertIfMissing(targetIndex, target, nodes, nodeIdToPosition);
-    links.push({source: sourceIndex, target: targetIndex});
-  });
-  callback({
-    nodes: nodes,
-    links: links
-  });
+  }
+
+  function getNodeIndexEnsurePresent(node) {
+    if (nodeIdToPosition[node.data._id]) {
+      return nodeIdToPosition[node.data._id];
+    } else {
+      console.log('node missing: ', node.data.name, ' ', node.data._id);
+      console.log('entry in nodeIdToPosition: ', nodeIdToPosition[node.data._id]);
+      console.log();
+      n = nodes.length;
+      nodes[n] = nodeToDict(node);
+      nodeIdToPosition[node.data._id] = n;
+      console.log('returning length of nodes: ', n);
+      return n;
+    }
+  }
+
+  function linkExistsBetween(parent, child) {
+    parentIndex = getNodeIndex(parent, nodeIdToPosition);
+    childIndex = getNodeIndex(child, nodeIdToPosition);
+    if (!parentIndex || !childIndex) {
+      return false;
+    }
+    return linksAlreadyInserted[linkKeyFunction(parent, child)];
+  }
+
+  function linkKeyFunction(parent, child) {
+    return parent.data._id + '' + child.data._id;
+  }
 };
 
 var getNodeInsertIfMissing = function(index, node, nodeList, nodeIdToPosition) {
@@ -94,7 +133,7 @@ var getNodeInsertIfMissing = function(index, node, nodeList, nodeIdToPosition) {
   } else {
     n = nodeList.length;
     nodeList[n] = nodeToDict(node);
-    nodeIdToPosition[node._id] = n;
+    nodeIdToPosition[node.data._id] = n;
     return n;
   }
 };

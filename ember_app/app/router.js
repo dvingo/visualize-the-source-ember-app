@@ -4,6 +4,7 @@ Router.map(function() {
   this.route('component-test');
   this.route('helper-test');
   this.route('tree', {'path': '/tree/:id'});
+  this.route('force-tree', {'path': '/force-tree/:id'});
 });
 
 Router.reopen({

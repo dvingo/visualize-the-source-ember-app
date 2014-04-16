@@ -9,8 +9,11 @@ var tree = (function() {
       clickContext,
       j = 0,
       separation = function(a, b) {
-        return 2;
+        return (a.parent === b.parent ? 1 : 2) / a.depth;
       },
+      //separation = function(a, b) {
+        //return 2;
+      //},
       diagonal = d3.svg.diagonal()
         .projection(function(d) {
           return [d.x, d.y];
