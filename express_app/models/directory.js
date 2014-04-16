@@ -47,12 +47,74 @@ Directory.get = function(directoryId, callback) {
   var params = { directoryId: directoryId };
   db.query(query, params, function(err, results) {
     if (err) return callback(err);
-    parseDirectoriesFromDB(results, function(directoryTree) {
+    parseDataForForceDiagram(results, function(directoryTree) {
+      console.log('calling callback;');
       callback(null, directoryTree);
     });
+    //parseDirectoriesFromDB(results, function(directoryTree) {
+      //callback(null, directoryTree);
+    //});
   });
 };
 
+parseDataForForceDiagram = function(resultsArray, callback) {
+  var nodes = [], links = [], nodeIdToPosition = {};
+
+  resultsArray.forEach(function(record) {
+    var root = record['d'],
+        child1 = record['child1'],
+        child2 = record['child2'],
+        child3 = record['child3'],
+        source, target;
+    if (root && child1) {
+      source = root;
+      target = child1;
+    } else if (child1 && child2) {
+      source = child1;
+      target = child2;
+    } else if (child2 && child3) {
+      source = child2;
+      target = child3;
+    }
+    sourceIndex = getNodeIndex(source, nodeIdToPosition);
+    targetIndex = getNodeIndex(target, nodeIdToPosition);
+    sourceIndex = getNodeInsertIfMissing(sourceIndex, source, nodes, nodeIdToPosition);
+    targetIndex = getNodeInsertIfMissing(targetIndex, target, nodes, nodeIdToPosition);
+    links.push({source: sourceIndex, target: targetIndex});
+  });
+  callback({
+    nodes: nodes,
+    links: links
+  });
+};
+
+var getNodeInsertIfMissing = function(index, node, nodeList, nodeIdToPosition) {
+  if (index) {
+    return index;
+  } else {
+    n = nodeList.length;
+    nodeList[n] = nodeToDict(node);
+    nodeIdToPosition[node._id] = n;
+    return n;
+  }
+};
+
+var nodeToDict = function(obj) {
+  if (obj.data.hasOwnProperty('content')) {
+    content = obj.data.content;
+    retVal = {'id': obj._id, 'name': obj.data.name, 'type': 'file'};//,
+      //'content': obj.data.content};
+  } else {
+    retVal = {'id': obj._id, 'name': obj.data.name, 'type': 'directory'};
+  }
+  return retVal;
+};
+
+var getNodeIndex = function(node, nodeIdToIndex) {
+  if (Object.keys(nodeIdToIndex).hasOwnProperty(node._id)) {
+    return nodeIdToIndex[node._id];
+  }
+};
 
 parseDirectoriesFromDB = function(resultsArray, callback) {
   var returnVal = {
