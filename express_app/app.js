@@ -37,8 +37,7 @@ app.all("*", function(req, res, next) {
 });
 app.use('/api', app.router);
 app.get('/', routes.index);
-app.get('/directories', directory.list);
-app.get('/directories/:id', directory.show);
+app.get('/directories', directory.tree);
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));

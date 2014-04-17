@@ -3,20 +3,17 @@ import { clearId, collapse, svgRotate, svgTranslate,
 
 var tree = (function() {
   var width = 900,
-      height = 700,
+      height = 900,
       duration = 750,
       clickCallback,
       clickContext,
       j = 0,
       separation = function(a, b) {
-        return (a.parent === b.parent ? 1 : 2) / a.depth;
+        return (a.parent === b.parent ? 2 : 4) / a.depth;
       },
-      //separation = function(a, b) {
-        //return 2;
-      //},
       diagonal = d3.svg.diagonal()
         .projection(function(d) {
-          return [d.x, d.y];
+          return [d.y, d.x];
         });
 
   // Run the visualization
@@ -30,8 +27,8 @@ var tree = (function() {
          .attr('height', height);
 
       var cluster = d3.layout.cluster()
-           .size([height, width - 160])
-           .separation(separation);
+           .size([height, width - 160]);
+           //.separation(separation);
 
       clearId(root);
       root.children.forEach(collapse);
@@ -47,20 +44,16 @@ var tree = (function() {
         nodes.forEach(function(d) {
           // Trying to get optimal depth values
           // Something like this might work for shallow trees:
-          var exponentDepth = 4;
-          d.y = d.depth * 80;
+          d.y = d.depth * 180;
           //if (d.depth < exponentDepth) {
             //d.y = Math.pow(d.depth, 5);
           //} else {
             //d.y = d.depth * 80;
           //}
-          console.log('in normalize for fixed-depth: d.y: ', d.y);
         });
-        console.log('nodes: ', nodes);
 
         // Update the nodes...
         var node = svg.selectAll('g.node')
-            //.data(nodes, function(d) { return d.id || (d.id = ++j); })
             .data(nodes, function(d) { return d.id || (d.id = ++j); });
 
         // Enter any new nodes at the parent's previous position.
@@ -71,22 +64,20 @@ var tree = (function() {
             })
             .on('click', click);
         nodeEnter.append('circle')
-            .attr('r', 1e-6)
+            .attr('r', 1e-2)
             .style('fill', function(d) { return d._children ? 'lightsteelblue' : '#fff'; });
 
-        //console.log('node is: ', node);
-
         nodeEnter.append('text')
-            .attr('dx', function(d) { return 8; })
-            .attr('dy', 3)
-            .attr('transform', function(d) { return svgRotate(20,0,0); })
+            .attr('x', function(d) { return d.childen || d._children ? -10 : 10; })
+            .attr('dy', '.35em')
+            .attr('text-anchor', function(d) { return d.childen || d._children ? "end" : "start"; })
             .style('text-anchor', 'start')
             .text(function(d) { return d.name; });
 
         var nodeUpdate = node.transition()
             .duration(duration)
             .attr('transform', function(d) {
-              return  svgTranslate(d.x, d.y);
+              return  svgTranslate(d.y, d.x);
             });
 
         nodeUpdate.select('circle')
@@ -102,7 +93,7 @@ var tree = (function() {
         var nodeExit = node.exit().transition()
             .duration(duration)
             .attr("transform", function(d) {
-              return svgTranslate(source.x, source.y);
+              return svgTranslate(source.y, source.x);
             })
             .remove();
 

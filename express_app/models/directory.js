@@ -33,7 +33,7 @@ Directory.prototype.toJson = function() {
 // Returns the given directory and three levels of descendants
 // in the format expected by Ember-data.
 //
-Directory.get = function(directoryId, callback) {
+Directory.getForce = function(directoryId, callback) {
   var query = [
     "MATCH (d:Directory)<-[:PARENT]-(child1)",
     "WHERE d._id = {directoryId}",
@@ -51,9 +51,26 @@ Directory.get = function(directoryId, callback) {
       console.log('calling callback;');
       callback(null, directoryTree);
     });
-    //parseDirectoriesFromDB(results, function(directoryTree) {
-      //callback(null, directoryTree);
-    //});
+  });
+};
+
+Directory.getTree = function(directoryId, callback) {
+  var query = [
+    "MATCH (d:Directory)<-[:PARENT]-(child1)",
+    "WHERE d._id = {directoryId}",
+    "WITH d, child1",
+    "OPTIONAL MATCH (child1)<-[:PARENT]-(child2)",
+    "WITH d, child1, child2",
+    "OPTIONAL MATCH (child2)<-[:PARENT]-(child3)",
+    "RETURN d, child1, child2, child3"
+  ].join('\n');
+
+  var params = { directoryId: directoryId };
+  db.query(query, params, function(err, results) {
+    if (err) return callback(err);
+    parseDirectoriesFromDB(results, function(directoryTree) {
+      callback(null, directoryTree);
+    });
   });
 };
 
@@ -81,11 +98,11 @@ parseDataForForceDiagram = function(resultsArray, callback) {
         ensureLinkExistsBetween(root, child1);
       }
   });
-  callback({directory: {
+  callback({directories: [{
     name: root.data.name,
     id: root.data._id,
     d3Data: { nodes: nodes, links: links }
-  }});
+  }]});
 
   function ensureLinkExistsBetween(parent, child) {
     if (!linkExistsBetween(parent, child)) {
@@ -156,16 +173,16 @@ var getNodeIndex = function(node, nodeIdToIndex) {
 };
 
 parseDirectoriesFromDB = function(resultsArray, callback) {
-  var returnVal = {
-    'directory': { 'type': 'directory' }
+  var returnDirectory = {
+    'type': 'directory'
   },
   cache = {}
   firstLevelChildren = {};
 
   resultsArray.forEach(function(record) {
     var d = record['d'];
-    returnVal.directory.id = record.d.id;
-    returnVal.directory.name = record.d.data.name;
+    returnDirectory.id = record.d.id;
+    returnDirectory.name = record.d.data.name;
     var child1 = record['child1'];
     var child2 = record['child2'];
     var child3 = record['child3'];
@@ -201,10 +218,10 @@ parseDirectoriesFromDB = function(resultsArray, callback) {
     console.log('\n\n');
   });
 
-  returnVal.directory.children = objToArray(firstLevelChildren);
-  d3Data = deepcopy(returnVal.directory);
-  returnVal.directory.d3Data = d3Data;
-  callback(returnVal);
+  returnDirectory.children = objToArray(firstLevelChildren);
+  d3Data = deepcopy(returnDirectory);
+  returnDirectory.d3Data = d3Data;
+  callback({directories: [returnDirectory]});
 }
 
 var getOrPutFromCache = function(obj, cache) {
