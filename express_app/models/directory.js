@@ -5,6 +5,10 @@ var db = new neo4j.GraphDatabase(
   'http://localhost:7474'
 );
 
+var parsers = require('./parsers');
+var parseDataForTreeDiagram = parsers.parseDataForTreeDiagram;
+var parseDataForForceDiagram = parsers.parseDataForForceDiagram;
+
 // Private constructor.
 var Directory = module.exports = function Directory(_node) {
   this._node = _node;
@@ -28,6 +32,16 @@ Directory.prototype.toJson = function() {
      name: this.name
    };
 };
+
+var query = [
+   "MATCH (d:Directory)<-[:PARENT]-(child)",
+   "WHERE d._id = {directoryId}",
+   "RETURN d AS parent, labels(d) as parent_labels, child as child, labels(child) as child_labels",
+   "UNION",
+   "MATCH (d:Directory)<-[:PARENT*1..2]-(parent)<-[:PARENT]-(child)",
+   "WHERE d._id = {directoryId}",
+   "RETURN parent AS parent, labels(parent) as parent_labels, child as child, labels(child) as child_labels"
+].join('\n');
 
 //
 // Returns the given directory and three levels of descendants
@@ -55,93 +69,13 @@ Directory.getForce = function(directoryId, callback) {
 };
 
 Directory.getTree = function(directoryId, callback) {
-  var query = [
-    "MATCH (d:Directory)<-[:PARENT]-(child1)",
-    "WHERE d._id = {directoryId}",
-    "WITH d, child1",
-    "OPTIONAL MATCH (child1)<-[:PARENT]-(child2)",
-    "WITH d, child1, child2",
-    "OPTIONAL MATCH (child2)<-[:PARENT]-(child3)",
-    "RETURN d, child1, child2, child3"
-  ].join('\n');
-
   var params = { directoryId: directoryId };
   db.query(query, params, function(err, results) {
     if (err) return callback(err);
-    parseDirectoriesFromDB(results, function(directoryTree) {
+    parseDataForTreeDiagram(results, function(directoryTree) {
       callback(null, directoryTree);
     });
   });
-};
-
-parseDataForForceDiagram = function(resultsArray, callback) {
-  var nodes = [], links = [], nodeIdToPosition = {}, root,
-      linksAlreadyInserted = {};
-
-  resultsArray.forEach(function(record) {
-    root = record['d'];
-    var child1 = record['child1'],
-        child2 = record['child2'],
-        child3 = record['child3'],
-        source, target;
-
-      if (child2 && child3) {
-        //console.log('got 2 and 3: ', child2.data.name, ' ', child3.data.name);
-        //console.log('got 1 and 2: ', child1.data.name, ' ', child2.data.name);
-        ensureLinkExistsBetween(child2, child3);
-        ensureLinkExistsBetween(child1, child2);
-        ensureLinkExistsBetween(root, child1);
-      } else if (child1 && child2) {
-        ensureLinkExistsBetween(child1, child2);
-        ensureLinkExistsBetween(root, child1);
-      } else if (root && child1) {
-        ensureLinkExistsBetween(root, child1);
-      }
-  });
-  callback({directories: [{
-    name: root.data.name,
-    id: root.data._id,
-    d3Data: { nodes: nodes, links: links }
-  }]});
-
-  function ensureLinkExistsBetween(parent, child) {
-    if (!linkExistsBetween(parent, child)) {
-      console.log("link doesn't exists between parent and child: ", parent.data.name, ' ', child.data.name)
-      console.log();
-      parentIndex = getNodeIndexEnsurePresent(parent);
-      childIndex = getNodeIndexEnsurePresent(child);
-      linksAlreadyInserted[linkKeyFunction(parent, child)] = true;
-      links.push({source: parentIndex, target: childIndex});
-    }
-  }
-
-  function getNodeIndexEnsurePresent(node) {
-    if (nodeIdToPosition[node.data._id]) {
-      return nodeIdToPosition[node.data._id];
-    } else {
-      console.log('node missing: ', node.data.name, ' ', node.data._id);
-      console.log('entry in nodeIdToPosition: ', nodeIdToPosition[node.data._id]);
-      console.log();
-      n = nodes.length;
-      nodes[n] = nodeToDict(node);
-      nodeIdToPosition[node.data._id] = n;
-      console.log('returning length of nodes: ', n);
-      return n;
-    }
-  }
-
-  function linkExistsBetween(parent, child) {
-    parentIndex = getNodeIndex(parent, nodeIdToPosition);
-    childIndex = getNodeIndex(child, nodeIdToPosition);
-    if (!parentIndex || !childIndex) {
-      return false;
-    }
-    return linksAlreadyInserted[linkKeyFunction(parent, child)];
-  }
-
-  function linkKeyFunction(parent, child) {
-    return parent.data._id + '' + child.data._id;
-  }
 };
 
 var getNodeInsertIfMissing = function(index, node, nodeList, nodeIdToPosition) {
