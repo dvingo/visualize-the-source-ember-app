@@ -41,8 +41,12 @@ def get_file_content(filename, root_path):
         return ''
     return lines
 
-def create_directory_node(name):
-    dir_node = graph_db.create({'name': name, '_id': uuid.uuid4().hex})[0]
+def create_directory_node(name, is_root=False):
+    node_dict = {'name': name, '_id': uuid.uuid4().hex}
+    if is_root:
+        node_dict['isRoot'] = True
+
+    dir_node = graph_db.create(node_dict)[0]
     dir_node.add_labels('Directory')
     return dir_node
 
@@ -82,7 +86,7 @@ print 'Inserting data...'
 for root, dirs, files in os.walk(path, topdown=True):
     root_name = os.path.basename(root)
     if current_root is None:
-        current_root = create_directory_node(root_name)
+        current_root = create_directory_node(root_name, is_root=True)
         previous_parent = current_root
     else:
         current_root = get_node_from_parent(root_name, current_root)

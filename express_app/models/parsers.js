@@ -1,24 +1,85 @@
+var deepcopy = require('deepcopy');
 var parseDataForTreeDiagram = function(listOfRecords, callback) {
-  var cache = {};
+  var cache = {}, root;
   listOfRecords.forEach(function(record) {
-    var parent = extractIfPresent(record, 'parent'),
-        parentLabels = record.parent_labels,
-        child = extractIfPresent(record, 'child'),
-        childLabels = record.child_labels;
-    ensureNodeInCache(parent, cache);
+    var parent = extractDataIfPresent(record, 'parent', 'parent_labels'),
+        child = extractDataIfPresent(record, 'child', 'child_labels');
+
+    if (parent.isRoot) { root = parent }
+
+    ensureNodesInCache(parent, child, cache);
     // add child to parent's 'children' property
     // ensure that it is added only if not present.
     // using references (i.e. the cache) will allow
     // us to build the nested dict structure without
     // needing to do the deep traversal ourselves.
-    ensureNodeInCache(child, cache);
   });
+  console.log('cache length: ', Object.keys(cache).length);
+  var returnData = tranformDataForEmber(root._id, cache);
+  callback(returnData);
 };
 
-var extractIfPresent = function(record, key) {
-  if (key in record && record[key]) {
+var tranformDataForEmber = function(rootId, cache) {
+  root = cache[rootId];
+  root.d3Data = deepcopy(root);
+  return {directories: [root]};
+};
 
-    return record[key].data;
+var ensureNodesInCache = function(parent, child, cache) {
+  parent = ensureNodeInCache(parent, cache);
+  child = ensureNodeInCache(child, cache);
+  ensureChildInChildrenList(parent, child);
+};
+
+var ensureNodeInCache = function(node, cache) {
+  var key = getKey(node);
+  if (key in cache) {
+    return cache[key];
+  }
+  node.id = node._id;
+  delete node._id;
+  cache[key] = node;
+  return node;
+};
+
+var ensureChildInChildrenList = function(parent, child) {
+  var children;
+  if ('children' in parent) {
+    children = parent.children;
+    ensureChildPropertiesSet(parent, child);
+    addChildIfMissing(parent, child);
+  } else {
+    parent.children = [];
+    parent.children.push(child);
+  }
+};
+
+var addChildIfMissing = function(parent, child) {
+  var childPresent = parent.children.filter(function(c) {
+    return c.id === child.id;
+  });
+  if (childPresent.length === 0) {
+    parent.children.push(child);
+  }
+};
+
+var ensureChildPropertiesSet = function(parent, child) {
+  if (!('parent' in child)) {
+    child.parent = {'id': parent._id, 'type': parent.type};
+  }
+};
+
+var getKey = function(node) {
+  return node['_id'];
+};
+
+var extractDataIfPresent = function(record, key, label_key) {
+  var data, label;
+  if (key in record && record[key]) {
+    data = record[key].data;
+    label = record[label_key][0].toLowerCase();
+    data.type = label;
+    return data;
   }
   return null;
 };

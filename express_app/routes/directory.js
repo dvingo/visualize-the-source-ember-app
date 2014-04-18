@@ -18,5 +18,7 @@ exports.tree = function(req, res, next) {
       if (err) return next(err);
       res.json(directoryTree);
     });
+  } else {
+    res.json({});
   }
 };

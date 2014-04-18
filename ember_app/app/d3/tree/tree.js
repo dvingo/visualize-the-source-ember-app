@@ -3,13 +3,13 @@ import { clearId, collapse, svgRotate, svgTranslate,
 
 var tree = (function() {
   var width = 900,
-      height = 900,
+      height = 1400,
       duration = 750,
       clickCallback,
       clickContext,
       j = 0,
       separation = function(a, b) {
-        return (a.parent === b.parent ? 2 : 4) / a.depth;
+        return (a.parent === b.parent ? 4 : 8) / a.depth;
       },
       diagonal = d3.svg.diagonal()
         .projection(function(d) {
@@ -64,7 +64,7 @@ var tree = (function() {
             })
             .on('click', click);
         nodeEnter.append('circle')
-            .attr('r', 1e-2)
+            .attr('r', 5)
             .style('fill', function(d) { return d._children ? 'lightsteelblue' : '#fff'; });
 
         nodeEnter.append('text')

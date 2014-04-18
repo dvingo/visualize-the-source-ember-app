@@ -3,8 +3,7 @@ var Router = Ember.Router.extend(); // ensure we don't share routes between all 
 Router.map(function() {
   this.route('component-test');
   this.route('helper-test');
-  this.route('tree', {'path': '/tree/:id'});
-  this.route('force-tree', {'path': '/force-tree/:id'});
+  this.route('vis', {'path': '/vis/:id/:type'});
 });
 
 Router.reopen({

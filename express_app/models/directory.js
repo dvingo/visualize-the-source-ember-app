@@ -38,7 +38,8 @@ var query = [
    "WHERE d._id = {directoryId}",
    "RETURN d AS parent, labels(d) as parent_labels, child as child, labels(child) as child_labels",
    "UNION",
-   "MATCH (d:Directory)<-[:PARENT*1..2]-(parent)<-[:PARENT]-(child)",
+   //"MATCH (d:Directory)<-[:PARENT*1..2]-(parent)<-[:PARENT]-(child)",
+   "MATCH (d:Directory)<-[:PARENT*]-(parent)<-[:PARENT]-(child)",
    "WHERE d._id = {directoryId}",
    "RETURN parent AS parent, labels(parent) as parent_labels, child as child, labels(child) as child_labels"
 ].join('\n');
@@ -62,7 +63,6 @@ Directory.getForce = function(directoryId, callback) {
   db.query(query, params, function(err, results) {
     if (err) return callback(err);
     parseDataForForceDiagram(results, function(directoryTree) {
-      console.log('calling callback;');
       callback(null, directoryTree);
     });
   });
@@ -161,7 +161,6 @@ parseDirectoriesFromDB = function(resultsArray, callback) {
 var getOrPutFromCache = function(obj, cache) {
   var id = obj.id, retVal, content;
   if (cache.hasOwnProperty(id)) {
-    console.log('found id in cache for name: ', cache[id].name);
     return cache[id];
   }
   if (obj.data.hasOwnProperty('content')) {
