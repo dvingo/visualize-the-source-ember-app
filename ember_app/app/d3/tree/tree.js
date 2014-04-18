@@ -19,12 +19,23 @@ var tree = (function() {
   // Run the visualization
   function inner(selection) {
     selection.each(function(root, i) {
-      var svg = d3.select(this).append('svg');
+      var svg = d3.select(this).append('svg'),
+          svgGroup = svg.append("g"),
+          zoomListener;
       root.x0 = height / 2;
       root.y0 = 100;
 
       svg.attr('width', width)
          .attr('height', height);
+
+      function zoom() {
+        console.log('got zoom!, event: ', d3.event);
+        svgGroup.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+      }
+
+      // define the zoomListener which calls the zoom function on the "zoom" event constrained within the scaleExtents
+      zoomListener = d3.behavior.zoom().scaleExtent([0.1, 3]).on("zoom", zoom);
+      svg.call(zoomListener);
 
       var cluster = d3.layout.cluster()
            .size([height, width - 160]);
@@ -36,24 +47,16 @@ var tree = (function() {
 
       function update(source) {
         // Compute the new tree layout.
-        //console.log('in update, root is: ', root);
         var nodes = cluster.nodes(root),
             links = cluster.links(nodes);
 
         // Normalize for fixed-depth.
         nodes.forEach(function(d) {
-          // Trying to get optimal depth values
-          // Something like this might work for shallow trees:
           d.y = d.depth * 180;
-          //if (d.depth < exponentDepth) {
-            //d.y = Math.pow(d.depth, 5);
-          //} else {
-            //d.y = d.depth * 80;
-          //}
         });
 
         // Update the nodes...
-        var node = svg.selectAll('g.node')
+        var node = svgGroup.selectAll('g.node')
             .data(nodes, function(d) { return d.id || (d.id = ++j); });
 
         // Enter any new nodes at the parent's previous position.
@@ -97,8 +100,6 @@ var tree = (function() {
             })
             .remove();
 
-        //console.log('node exit: ', nodeExit);
-
         nodeExit.select("circle")
           .attr("r", 1e-6);
 
@@ -106,7 +107,7 @@ var tree = (function() {
           .style("fill-opacity", 1e-6);
 
         // Update the links…
-        var link = svg.selectAll("path.link")
+        var link = svgGroup.selectAll("path.link")
           .data(links, function(d) { return d.target.id; });
 
         // Enter any new links at the parent's previous position.
@@ -141,7 +142,6 @@ var tree = (function() {
       // Toggle children on click.
       function click(d) {
         clickCallback.call(clickContext, d);
-        console.log('in click, d: ', d);
         toggleChildren(d);
         update(d);
       }

@@ -21,6 +21,14 @@ function toggleChildren(d) {
   }
 }
 
+function expand(d) {
+  if (d._children) {
+    d.children = d._children;
+    d.children.forEach(expand);
+    d._children = null;
+  }
+}
+
 // Move the children attribute to another name
 // effectively triggering an exit selection.
 function collapse(d) {
@@ -40,4 +48,12 @@ function clearId(d) {
   d.id = null;
 }
 
-export { clearId, collapse, svgTranslate, svgRotate, toggleChildren };
+// Sort the tree according to the node names.
+function sortTree(tree) {
+  tree.sort(function(a, b) {
+    return b.name.toLowerCase() < a.name.toLowerCase() ? 1 : -1;
+  });
+}
+
+export { clearId, collapse, expand, sortTree, svgTranslate, svgRotate,
+  toggleChildren };

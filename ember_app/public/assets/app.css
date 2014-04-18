@@ -6,3 +6,10 @@
 text {
   fill: black;
 }
+
+svg {
+  border: 1px solid #5E5C5C;
+  box-shadow: inset 4px 4px 12px 0px #646464,
+              inset -4px -4px 12px 0px #646464;
+  border-radius: 10px;
+}
