@@ -1,5 +1,10 @@
-model: {{model}}
-<br>
-<h2>Dir: {{name}}</h2>
-<h3>D3 Tree:</h3>
-{{d3-tree data=d3Data}}
+<h2>Source code tree of: {{name}}</h2>
+{{d3-tree data=d3Data action="showFile"}}
+<div class="view-content">
+  <div class="name">
+    {{selectedFileName}}
+  </div>
+  <div class="source">
+    {{selectedFileContent}}
+  </div>
+</div>
