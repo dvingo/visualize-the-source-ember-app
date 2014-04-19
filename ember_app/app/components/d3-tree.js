@@ -1,14 +1,17 @@
 import tree from "../d3/tree/tree";
 export default Em.Component.extend({
+  tagName: 'div',
+
   init: function() {
     tree.clickCallback(this, this.clickHandler);
     this._super();
   },
-  tagName: 'div',
+
   clickHandler: function(el) {
     console.log("element was clicked: ", el);
     this.sendAction('action', el);
   },
+
   update: function(root) {
     var elementId = '#' + this.get('elementId');
     console.log("root: ", root);
@@ -44,5 +47,13 @@ export default Em.Component.extend({
       // this.data is bound from the template.
       this.update(this.data || {});
     }
-  }.observes('data')
+  }.observes('data'),
+
+  actions: {
+    expandAllNodes: function() {
+      console.log('expand all nodes');
+      tree.expandAllNodes();
+    }
+  }
+
 });

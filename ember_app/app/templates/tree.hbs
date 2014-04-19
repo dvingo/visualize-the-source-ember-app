@@ -1,10 +1,28 @@
 <h2>Source code tree of: {{name}}</h2>
-{{d3-tree data=d3Data action="showFile"}}
+<div class="vis">
+  {{d3-tree data=d3Data action="showFile"}}
+</div>
+
 <div class="view-content">
-  <div class="name">
-    {{selectedFileName}}
+  <div class="file left">
+    <div class="name">
+      {{selectedFileOneName}}
+    </div>
+    <div class="source">
+      <pre><code>
+        {{selectedFileOneContent}}
+      </code></pre>
+    </div>
   </div>
-  <div class="source">
-    {{selectedFileContent}}
+
+  <div class="file right">
+    <div class="name">
+      {{selectedFileTwoName}}
+    </div>
+    <div class="source">
+      <pre><code>
+        {{selectedFileTwoContent}}
+      </code></pre>
+    </div>
   </div>
 </div>

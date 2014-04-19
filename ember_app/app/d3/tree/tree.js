@@ -1,20 +1,41 @@
-import { clearId, collapse, svgRotate, svgTranslate,
+import { clearId, collapse, expand, svgRotate, svgTranslate,
   toggleChildren } from './util';
 
 var tree = (function() {
-  var width = 600,
-      height = 900,
+  var width = 1000,
+      height = 600,
       duration = 750,
+      outerUpdate,
       clickCallback,
       clickContext,
+      orientation = 'vertical',
       j = 0,
       separation = function(a, b) {
         return (a.parent === b.parent ? 4 : 8) / a.depth;
       },
       diagonal = d3.svg.diagonal()
         .projection(function(d) {
-          return [d.y, d.x];
+          if (orientation === 'vertical') {
+            return [d.y, d.x];
+          } else if (orientation === 'horizontal') {
+            return [d.x, d.y];
+          }
+        }),
+      allTreeRoots = [],
+      expandAllNodes = function() {
+        allTreeRoots.forEach(function(list) {
+          var tree = list[0], root = list[1],
+              nodes = tree.nodes(root);
+          nodes.forEach(function(d) {
+            // If it is collapsed, then expand it.
+            if (d._children) {
+              console.log('expanding d: ', d);
+              expand(d);
+            }
+          });
+          outerUpdate(root);
         });
+      };
 
   // Run the visualization
   function inner(selection) {
@@ -29,12 +50,12 @@ var tree = (function() {
          .attr('height', height);
 
       function zoom() {
-        console.log('got zoom!, event: ', d3.event);
         svgGroup.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
         svgGroup.selectAll('g.node').filter(function(d) {
           return d.type === 'directory';
-        }).selectAll('text').attr("transform", function(t) {
-          var s = d3.event.scale, factor = 1;
+        }).selectAll('text').attr("transform", function(t, i) {
+          var s = d3.event.scale, factor = 1, vertOffset = false, translate = 0,
+              returnString = '';
           if (s >= 0.9) {
             factor = 1;
           } else if (s >= 0.5) {
@@ -44,33 +65,68 @@ var tree = (function() {
           } else if (s >= 0.3) {
             factor = 2;
           } else if (s >= 0.2) {
+            translate = 2 * -i;
             factor = 3;
+          } else {
+            translate = 2 * -i;
+            factor = 6;
           }
-          console.log('setting factor to: ', factor);
-          return "scale(" + factor + ")";
+          returnString = "scale(" + factor + ")";
+          if (vertOffset) {
+            returnString = "scale(" + factor + ")" + "translate(" + translate + ")";
+          }
+          if (orientation === 'horizontal') {
+            returnString += svgRotate(20,0,0);
+          }
+          return returnString;
         });
       }
 
       // define the zoomListener which calls the zoom function on the "zoom" event constrained within the scaleExtents
-      zoomListener = d3.behavior.zoom().scaleExtent([0.25, 3]).on("zoom", zoom);
+      zoomListener = d3.behavior.zoom().scaleExtent([0.1, 3]).on("zoom", zoom);
       svg.call(zoomListener);
 
-      var cluster = d3.layout.cluster()
+      var tree = d3.layout.tree()
            .size([height, width - 160]);
-           //.separation(separation);
+      allTreeRoots.push([tree, root]);
 
       clearId(root);
       root.children.forEach(collapse);
       update(root);
 
       function update(source) {
+        // Compute the new height, function counts total children of root node and sets tree height accordingly.
+        // This prevents the layout looking squashed when new nodes are made visible or looking sparse when nodes are removed
+        // This makes the layout more consistent.
+        var levelWidth = [1];
+        var childCount = function(level, n) {
+          if (n.children && n.children.length > 0) {
+            if (levelWidth.length <= level + 1) {
+              levelWidth.push(0);
+            }
+
+            levelWidth[level + 1] += n.children.length;
+            n.children.forEach(function(d) {
+              childCount(level + 1, d);
+            });
+          }
+        };
+        childCount(0, root);
+        var newHeight = d3.max(levelWidth) * 35; // 35 pixels per line
+        tree = tree.size([newHeight, width * 2]);
+
         // Compute the new tree layout.
-        var nodes = cluster.nodes(root),
-            links = cluster.links(nodes);
+        var nodes = tree.nodes(root),
+            links = tree.links(nodes);
 
         // Normalize for fixed-depth.
         nodes.forEach(function(d) {
-          d.y = d.depth * 180;
+          if (orientation === 'vertical') {
+            d.y = d.depth * 300;
+          } else if (orientation === 'horizontal') {
+            d.y = d.depth * 300;
+            d.x = d.x * 3;
+          }
         });
 
         // Update the nodes...
@@ -86,18 +142,26 @@ var tree = (function() {
             .on('click', click);
         nodeEnter.append('circle')
             .attr('r', 5)
-            .style('fill', function(d) { return d._children ? 'lightsteelblue' : '#fff'; });
+            .style('fill', function(d) { return d.children || d._children ? 'lightsteelblue' : '#fff'; });
 
-        nodeEnter.append('text')
-            .attr('x', function(d) { return d.childen || d._children ? -5 : 5; })
+        var textEls = nodeEnter.append('text')
+            .attr('x', function(d) { return d.children || d._children ? -5 : 5; })
             .attr('dy', '.35em')
-            .attr('text-anchor', function(d) { return d.childen || d._children ? "end" : "start"; })
+            .attr('text-anchor', function(d) { return d.children || d._children ? "end" : "start"; })
             .text(function(d) { return d.name; });
+
+        if (orientation === 'horizontal') {
+          textEls.attr('transform', function(d) { return svgRotate(20,0,0); });
+        }
 
         var nodeUpdate = node.transition()
             .duration(duration)
             .attr('transform', function(d) {
-              return  svgTranslate(d.y, d.x);
+              if (orientation === 'vertical') {
+                return  svgTranslate(d.y, d.x);
+              } else if (orientation === 'horizontal') {
+                return  svgTranslate(d.x, d.y);
+              }
             });
 
         nodeUpdate.select('circle')
@@ -113,7 +177,11 @@ var tree = (function() {
         var nodeExit = node.exit().transition()
             .duration(duration)
             .attr("transform", function(d) {
-              return svgTranslate(source.y, source.x);
+              if (orientation === 'vertical') {
+                return  svgTranslate(source.y, source.x);
+              } else if (orientation === 'horizontal') {
+                return  svgTranslate(source.x, source.y);
+              }
             })
             .remove();
 
@@ -155,6 +223,7 @@ var tree = (function() {
           d.y0 = d.y;
         });
       }
+      outerUpdate = update;
 
       // Toggle children on click.
       function click(d) {
@@ -194,6 +263,10 @@ var tree = (function() {
     if (!arguments.length) { return diagonal; }
     diagonal = diagonalFunction;
     return inner;
+  };
+
+  inner.expandAllNodes = function() {
+    expandAllNodes();
   };
 
   return inner;

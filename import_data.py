@@ -33,7 +33,7 @@ def get_file_content(filename, root_path):
     path_name = os.path.join(root_path, filename)
     try:
         file_obj = open(path_name)
-        lines = u''.join([line.decode('utf-8').strip() for line in file_obj.readlines()])
+        lines = u''.join([line.decode('utf-8') for line in file_obj.readlines()])
     except:
         print 'got error'
         print 'reading content for file: ', path_name
