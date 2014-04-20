@@ -18,6 +18,7 @@ svg {
   box-shadow: inset 4px 4px 12px 0px #646464,
               inset -4px -4px 12px 0px #646464;
   border-radius: 10px;
+  background: #ECECEC;
 }
 
 .file {
@@ -38,4 +39,8 @@ svg {
 .source {
   overflow: scroll;
   max-height: 750px;
+}
+
+pre {
+  white-space: pre-wrap;
 }
