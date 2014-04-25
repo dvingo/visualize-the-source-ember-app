@@ -7,9 +7,17 @@ export default Em.Component.extend({
     this._super();
   },
 
-  clickHandler: function(el) {
+  clickHandler: function(el, callback) {
     console.log("element was clicked: ", el);
-    this.sendAction('action', el);
+    if (el.type === 'directory') {
+      this.sendAction('clickedDir', el);
+      this.store.find('directory', el.emberId).then(function(d) {
+        d.reload().then(function(a) { callback(a); });
+      });
+      callback(el);
+    } else if (el.type === 'file') {
+      this.sendAction('clickedFile', el);
+    }
   },
 
   update: function(root) {

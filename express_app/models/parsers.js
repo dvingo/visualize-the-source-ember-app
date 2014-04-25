@@ -29,19 +29,10 @@ var tranformDataForEmber = function(rootId, cache) {
     }
   }
   root = cache[rootId];
-  console.log('root is: ', root);
   return { directories: directories, files: files, root: root };
 };
 
 var ensureNodesInCache = function(parent, child, cache) {
-
-  if (parent.name === 'ember-views') {
-    console.log('ember views!!!: ', parent);
-  }
-
-  if (child.name === 'ember-views') {
-    console.log('ember views CHUILD!!!: ', child);
-  }
   parent = ensureNodeInCache(parent, cache);
   child = ensureNodeInCache(child, cache);
   ensureChildInChildrenList(parent, child);
@@ -67,9 +58,6 @@ var ensureChildInChildrenList = function(parent, child) {
   } else {
     parent.children = [];
     parent.children.push(getPolymorphicProperties(child));
-  }
-  if (parent.name === 'ember-views') {
-    console.log('ember views!!!: ', parent);
   }
 };
 

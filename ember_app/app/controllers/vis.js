@@ -30,6 +30,12 @@ export default Em.ObjectController.extend({
           this.toggleProperty('useLeftPane');
         }
       }
+    },
+    expandDir: function(dir) {
+      this.store.find('directory', dir.emberId).then(function(d) {
+        console.log('expand DS dir: ', d);
+      });
+      console.log('expand dir: ', dir);
     }
   }
 

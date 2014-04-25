@@ -227,9 +227,11 @@ var tree = (function() {
 
       // Toggle children on click.
       function click(d) {
-        clickCallback.call(clickContext, d);
-        toggleChildren(d);
-        update(d);
+        clickCallback.call(clickContext, d, function(newDir) {
+          console.log('in d3 tree with newDir: ', newDir);
+          toggleChildren(d);
+          update(d);
+        });
       }
     });
   }

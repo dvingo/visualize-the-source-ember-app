@@ -48,14 +48,11 @@ export default DS.RESTSerializer.extend({
       obj.children = newChildren;
     }
 
-    console.log('in extract array. primaryType: ', primaryType);
-    console.log('in extract array. payload: ', payload);
     var newPayload,
         rootDir,
         root = copyWithoutChildren(payload.root);
 
-    var res = populateChildren(root);
-    console.log('res: ', res);
+    populateChildren(root);
 
     payload.directories.forEach(function(d) {
       store.push('directory', d);
@@ -67,7 +64,6 @@ export default DS.RESTSerializer.extend({
     rootDir = payload.root;
     rootDir.d3TreeData = root;
     newPayload = {'directories': [rootDir]};
-    debugger;
     return this._super(store, primaryType, newPayload);
   }
 });
