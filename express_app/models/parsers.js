@@ -18,22 +18,7 @@ var parseDataForTreeDiagram = function(listOfRecords, callback) {
   callback(returnData);
 };
 
-// Instead of building the nested stucture, return
-//
-// { 'directories': [], 'files': [], 'root': {} }
-// each directory needs a 'children' property with just {'id': 'abcd', 'type': 'xyz' }
-// file needs a a 'parent' property
-
 var tranformDataForEmber = function(rootId, cache) {
-  //
-  //
-  // need to flatten out the structure returned:
-  // directories: [{
-  //   id: a;dslf, children: [],
-  //
-  //   type: 'directory'
-  // }, files: [{type: 'file', id: 'ssss', 'name': 'xxx'}, {...}]
-  //http://emberjs.com/guides/models/connecting-to-an-http-server/
   var directories = [], files = [], root;
   for (key in cache) {
     var item = cache[key];
@@ -44,11 +29,19 @@ var tranformDataForEmber = function(rootId, cache) {
     }
   }
   root = cache[rootId];
+  console.log('root is: ', root);
   return { directories: directories, files: files, root: root };
-  //return {directories: [root]};
 };
 
 var ensureNodesInCache = function(parent, child, cache) {
+
+  if (parent.name === 'ember-views') {
+    console.log('ember views!!!: ', parent);
+  }
+
+  if (child.name === 'ember-views') {
+    console.log('ember views CHUILD!!!: ', child);
+  }
   parent = ensureNodeInCache(parent, cache);
   child = ensureNodeInCache(child, cache);
   ensureChildInChildrenList(parent, child);
@@ -74,6 +67,9 @@ var ensureChildInChildrenList = function(parent, child) {
   } else {
     parent.children = [];
     parent.children.push(getPolymorphicProperties(child));
+  }
+  if (parent.name === 'ember-views') {
+    console.log('ember views!!!: ', parent);
   }
 };
 
