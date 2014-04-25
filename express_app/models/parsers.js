@@ -14,15 +14,38 @@ var parseDataForTreeDiagram = function(listOfRecords, callback) {
     // us to build the nested dict structure without
     // needing to do the deep traversal ourselves.
   });
-  console.log('cache length: ', Object.keys(cache).length);
   var returnData = tranformDataForEmber(root._id, cache);
   callback(returnData);
 };
 
+// Instead of building the nested stucture, return
+//
+// { 'directories': [], 'files': [], 'root': {} }
+// each directory needs a 'children' property with just {'id': 'abcd', 'type': 'xyz' }
+// file needs a a 'parent' property
+
 var tranformDataForEmber = function(rootId, cache) {
+  //
+  //
+  // need to flatten out the structure returned:
+  // directories: [{
+  //   id: a;dslf, children: [],
+  //
+  //   type: 'directory'
+  // }, files: [{type: 'file', id: 'ssss', 'name': 'xxx'}, {...}]
+  //http://emberjs.com/guides/models/connecting-to-an-http-server/
+  var directories = [], files = [], root;
+  for (key in cache) {
+    var item = cache[key];
+    if (item.type === 'directory') {
+      directories.push(item);
+    } else if (item.type === 'file') {
+      files.push(item);
+    }
+  }
   root = cache[rootId];
-  root.d3Data = deepcopy(root);
-  return {directories: [root]};
+  return { directories: directories, files: files, root: root };
+  //return {directories: [root]};
 };
 
 var ensureNodesInCache = function(parent, child, cache) {
@@ -50,7 +73,7 @@ var ensureChildInChildrenList = function(parent, child) {
     addChildIfMissing(parent, child);
   } else {
     parent.children = [];
-    parent.children.push(child);
+    parent.children.push(getPolymorphicProperties(child));
   }
 };
 
@@ -59,13 +82,13 @@ var addChildIfMissing = function(parent, child) {
     return c.id === child.id;
   });
   if (childPresent.length === 0) {
-    parent.children.push(child);
+    parent.children.push(getPolymorphicProperties(child));
   }
 };
 
 var ensureChildPropertiesSet = function(parent, child) {
   if (!('parent' in child)) {
-    child.parent = {'id': parent._id, 'type': parent.type};
+    child.parent = {'id': parent.id, 'type': parent.type};
   }
 };
 
@@ -73,16 +96,21 @@ var getKey = function(node) {
   return node['_id'];
 };
 
-var extractDataIfPresent = function(record, key, label_key) {
+var getPolymorphicProperties= function(node) {
+  return { 'id': node.id, 'type': node.type };
+};
+
+var extractDataIfPresent = function(record, key, labelKey) {
   var data, label;
   if (key in record && record[key]) {
     data = record[key].data;
-    label = record[label_key][0].toLowerCase();
+    label = record[labelKey][0].toLowerCase();
     data.type = label;
     return data;
   }
   return null;
 };
+
 var parseDataForForceDiagram = function(resultsArray, callback) {
   var nodes = [], links = [], nodeIdToPosition = {}, root,
       linksAlreadyInserted = {};
@@ -113,8 +141,6 @@ var parseDataForForceDiagram = function(resultsArray, callback) {
 
   function ensureLinkExistsBetween(parent, child) {
     if (!linkExistsBetween(parent, child)) {
-      console.log("link doesn't exists between parent and child: ", parent.data.name, ' ', child.data.name)
-      console.log();
       parentIndex = getNodeIndexEnsurePresent(parent);
       childIndex = getNodeIndexEnsurePresent(child);
       linksAlreadyInserted[linkKeyFunction(parent, child)] = true;
@@ -126,13 +152,9 @@ var parseDataForForceDiagram = function(resultsArray, callback) {
     if (nodeIdToPosition[node.data._id]) {
       return nodeIdToPosition[node.data._id];
     } else {
-      console.log('node missing: ', node.data.name, ' ', node.data._id);
-      console.log('entry in nodeIdToPosition: ', nodeIdToPosition[node.data._id]);
-      console.log();
       n = nodes.length;
       nodes[n] = nodeToDict(node);
       nodeIdToPosition[node.data._id] = n;
-      console.log('returning length of nodes: ', n);
       return n;
     }
   }

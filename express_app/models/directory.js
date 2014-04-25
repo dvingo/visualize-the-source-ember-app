@@ -39,7 +39,8 @@ var query = [
    "RETURN d AS parent, labels(d) as parent_labels, child as child, labels(child) as child_labels",
    "UNION",
    //"MATCH (d:Directory)<-[:PARENT*1..2]-(parent)<-[:PARENT]-(child)",
-   "MATCH (d:Directory)<-[:PARENT*]-(parent)<-[:PARENT]-(child)",
+   //"MATCH (d:Directory)<-[:PARENT*]-(parent)<-[:PARENT]-(child)",
+   "MATCH (d:Directory)<-[:PARENT]-(parent)<-[:PARENT]-(child)",
    "WHERE d._id = {directoryId}",
    "RETURN parent AS parent, labels(parent) as parent_labels, child as child, labels(child) as child_labels"
 ].join('\n');
