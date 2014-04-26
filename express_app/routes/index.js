@@ -1,8 +1,7 @@
+var Directory = require('../models/directory');
 
-/*
- * GET home page.
- */
-
-exports.index = function(req, res){
-  res.render('index', { title: 'Express' });
+exports.index = function(req, res) {
+  Directory.getAllRootNodes(function(err, nodes) {
+    res.json(nodes);
+  });
 };
