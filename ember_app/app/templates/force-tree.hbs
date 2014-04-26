@@ -1,3 +1,28 @@
-<h2>Dir: {{name}}</h2>
-<h3>D3 Tree:</h3>
-{{d3-force-tree data=d3Data}}
+<h2>Source code tree of: {{name}}</h2>
+<div class="vis">
+  {{d3-force-tree data=d3TreeData clickedDir="expandDir" clickedFile="showFile"}}
+</div>
+
+<div class="view-content">
+  <div class="file left">
+    <div class="name">
+      {{selectedFileOneName}}
+    </div>
+    <div class="source">
+      <pre><code class="hljs javascript">
+        {{{selectedFileOneContent}}}
+      </code></pre>
+    </div>
+  </div>
+
+  <div class="file right">
+    <div class="name">
+      {{selectedFileTwoName}}
+    </div>
+    <div class="source">
+      <pre><code class="hljs javascript">
+        {{{selectedFileTwoContent}}}
+      </code></pre>
+    </div>
+  </div>
+</div>

@@ -74,6 +74,14 @@ var ensureChildPropertiesSet = function(parent, child) {
   if (!('parent' in child)) {
     child.parent = {'id': parent.id, 'type': parent.type};
   }
+  if (child.hasOwnProperty('content') && !child.hasOwnProperty('numLines')) {
+    var m = child.content.match(/\n/g);
+    if (m) {
+      child.numLines = m.length || 0;
+    } else {
+      child.numLines = 0;
+    }
+  }
 };
 
 var getKey = function(node) {

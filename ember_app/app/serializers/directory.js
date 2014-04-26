@@ -1,5 +1,5 @@
 export default DS.RESTSerializer.extend({
-  extractArray: function(store, primaryType, payload) {
+  extractSingle: function(store, primaryType, payload) {
 
     function getFullObject(child) {
       if (child.type === 'directory') {
@@ -32,7 +32,7 @@ export default DS.RESTSerializer.extend({
       return retVal;
     }
 
-    /// Assumes fromObj has children of the form:
+    /// Assumes obj has children of the form:
     /// [{ 'id': 'agdfd', 'type': 'file|dir' }].
     function populateChildren(obj) {
       var newChildren = [];
@@ -61,9 +61,10 @@ export default DS.RESTSerializer.extend({
     payload.files.forEach(function(f) {
       store.push('file', f);
     });
+
     rootDir = payload.root;
     rootDir.d3TreeData = root;
-    newPayload = {'directories': [rootDir]};
+    newPayload = {'directory': rootDir};
     return this._super(store, primaryType, newPayload);
   }
 });

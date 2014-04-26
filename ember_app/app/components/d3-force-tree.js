@@ -8,7 +8,15 @@ export default Em.Component.extend({
   tagName: 'div',
   clickHandler: function(el) {
     console.log("element was clicked: ", el);
-    this.sendAction('action', el);
+
+    if (el.type === 'directory') {
+      this.sendAction('clickedDir', el);
+      //this.store.find('directory', el.emberId).then(function(d) {
+        //d.reload().then(function(a) { callback(a); });
+      //});
+    } else if (el.type === 'file') {
+      this.sendAction('clickedFile', el);
+    }
   },
   update: function(graph) {
     var elementId = '#' + this.get('elementId');

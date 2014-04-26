@@ -11,9 +11,9 @@ export default Em.Component.extend({
     console.log("element was clicked: ", el);
     if (el.type === 'directory') {
       this.sendAction('clickedDir', el);
-      this.store.find('directory', el.emberId).then(function(d) {
-        d.reload().then(function(a) { callback(a); });
-      });
+      //this.store.find('directory', el.emberId).then(function(d) {
+        //d.reload().then(function(a) { callback(a); });
+      //});
       callback(el);
     } else if (el.type === 'file') {
       this.sendAction('clickedFile', el);

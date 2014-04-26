@@ -32,9 +32,9 @@ export default Em.ObjectController.extend({
       }
     },
     expandDir: function(dir) {
-      this.store.find('directory', dir.emberId).then(function(d) {
-        console.log('expand DS dir: ', d);
-      });
+      //this.store.find('directory', dir.emberId).then(function(d) {
+        //console.log('expand DS dir: ', d);
+      //});
       console.log('expand dir: ', dir);
     }
   }

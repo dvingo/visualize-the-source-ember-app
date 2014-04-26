@@ -28,6 +28,18 @@ svg {
   padding: 0 5px;
 }
 
+.node {
+  cursor: pointer;
+  stroke: #3182bd;
+  stroke-width: 1.5px;
+}
+
+.node text {
+  stroke: none;
+  stroke-width: 1;
+}
+
+
 .file.left {
   float: left;
 }
