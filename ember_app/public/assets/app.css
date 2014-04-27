@@ -56,3 +56,10 @@ svg {
 pre {
   white-space: pre-wrap;
 }
+
+.on {
+  display: block;
+}
+.off {
+  display: none;
+}

@@ -3,11 +3,12 @@
 </h2>
 <button {{action 'toggleVisType'}}>Toggle Chart</button>
 <div class="vis">
-  {{#if showTree}}
+  <div {{bind-attr class="showTree::off"}}>
     {{d3-tree data=d3TreeData clickedDir="expandDir" clickedFile="showFile"}}
-  {{else}}
+  </div>
+  <div {{bind-attr class="showTree:off"}}>
     {{d3-force-tree data=d3TreeData clickedDir="expandDir" clickedFile="showFile"}}
-  {{/if}}
+  </div>
 </div>
 
 <div class="view-content">
