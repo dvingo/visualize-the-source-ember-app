@@ -1,0 +1,35 @@
+<h2>Source code tree of: {{name}} as
+  {{#if showTree}}Tree.{{else}}Force directed graph.{{/if}}
+</h2>
+<button {{action 'toggleVisType'}}>Toggle Chart</button>
+<div class="vis">
+  {{#if showTree}}
+    {{d3-tree data=d3TreeData clickedDir="expandDir" clickedFile="showFile"}}
+  {{else}}
+    {{d3-force-tree data=d3TreeData clickedDir="expandDir" clickedFile="showFile"}}
+  {{/if}}
+</div>
+
+<div class="view-content">
+  <div class="file left">
+    <div class="name">
+      {{selectedFileOneName}}
+    </div>
+    <div class="source">
+      <pre><code class="hljs javascript">
+        {{{selectedFileOneContent}}}
+      </code></pre>
+    </div>
+  </div>
+
+  <div class="file right">
+    <div class="name">
+      {{selectedFileTwoName}}
+    </div>
+    <div class="source">
+      <pre><code class="hljs javascript">
+        {{{selectedFileTwoContent}}}
+      </code></pre>
+    </div>
+  </div>
+</div>

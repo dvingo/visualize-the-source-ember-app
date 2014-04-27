@@ -1,7 +1,20 @@
-export default Ember.Route.extend({ 
+export default Ember.Route.extend({
+  alreadySearched: false,
   model: function() {
-    return $.get('localhost:3000/api/').then(function(data) {
-      return data.nodes;
-    });
+    if (!this.get('alreadySearched')) {
+      this.toggleProperty('alreadySearched');
+      return this.store.find('project');
+    } else{
+      return this.store.all('project');
+    }
+  },
+  actions: {
+    willTransition: function(transition) {
+      var directoryId = transition.intent.contexts[0].id;
+      var self = this;
+      this.store.find('directory', directoryId).then(function(data) {
+        self.transitionTo('vis', data);
+      });
+    }
   }
 });

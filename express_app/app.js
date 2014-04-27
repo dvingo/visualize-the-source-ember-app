@@ -37,6 +37,7 @@ app.all("*", function(req, res, next) {
 });
 app.use('/api', app.router);
 app.get('/', routes.index);
+app.get('/projects', directory.allRoots);
 app.get('/directories/:id', directory.tree);
 
 http.createServer(app).listen(app.get('port'), function(){

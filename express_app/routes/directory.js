@@ -13,3 +13,9 @@ exports.tree = function(req, res, next) {
     res.json(directoryTree);
   });
 };
+
+exports.allRoots= function(req, res, next) {
+  Directory.getAllRootNodes(function(err, nodes) {
+    res.json({'projects': nodes});
+  });
+};

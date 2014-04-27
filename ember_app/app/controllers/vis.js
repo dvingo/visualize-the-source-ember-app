@@ -1,4 +1,5 @@
 export default Em.ObjectController.extend({
+  showTree: true,
   selectedFileOneContent: null,
   selectedFileOneName: null,
   selectedFileTwoContent: null,
@@ -36,6 +37,9 @@ export default Em.ObjectController.extend({
         //console.log('expand DS dir: ', d);
       //});
       console.log('expand dir: ', dir);
+    },
+    toggleVisType: function() {
+      this.toggleProperty('showTree');
     }
   }
 
