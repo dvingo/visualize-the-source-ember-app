@@ -64,6 +64,7 @@ export default DS.RESTSerializer.extend({
 
     rootDir = payload.root;
     rootDir.d3TreeData = root;
+    rootDir.d3ForceTreeData = deepcopy(root);
     newPayload = {'directory': rootDir};
     return this._super(store, primaryType, newPayload);
   }

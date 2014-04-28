@@ -10,6 +10,7 @@
     "Em": true,
     "DS": true,
     "hljs": true,
+    "deepcopy": true,
     "$": true
   },
   "node" : false,

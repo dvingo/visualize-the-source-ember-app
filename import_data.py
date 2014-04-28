@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import py2neo
+import sys
 import uuid
 
 from py2neo import node, neo4j, rel
@@ -75,8 +76,13 @@ def path_matches_file_system(file_path_name, ancestor_list):
     file_dirname = os.path.dirname(file_path_name)
     return  os.path.samefile(file_dirname, ancestor_fs_path)
 
+if len(sys.argv) != 2:
+    print 'You must provide one directory'
+    sys.exit(1)
+
 graph_db = neo4j.GraphDatabaseService("http://localhost:7474/db/data/")
-path = './ember.js'
+path = sys.argv[1]
+print 'path is: ', path
 current_root = None
 previous_parent = None
 parent_stack = []
