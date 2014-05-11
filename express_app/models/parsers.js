@@ -1,9 +1,11 @@
 var deepcopy = require('deepcopy');
+var parentType = 'parent';
+var childType = 'child';
 var parseDataForTreeDiagram = function(listOfRecords, callback) {
   var cache = {}, root;
   listOfRecords.forEach(function(record) {
-    var parent = extractDataIfPresent(record, 'parent', 'parent_labels'),
-        child = extractDataIfPresent(record, 'child', 'child_labels');
+    var parent = extractDataIfPresent(record, parentType),
+        child = extractDataIfPresent(record, childType);
 
     if (parent.isRoot) { root = parent }
 
@@ -14,7 +16,7 @@ var parseDataForTreeDiagram = function(listOfRecords, callback) {
     // us to build the nested dict structure without
     // needing to do the deep traversal ourselves.
   });
-  var returnData = tranformDataForEmber(root._id, cache);
+  var returnData = tranformDataForEmber(root.id, cache);
   callback(returnData);
 };
 
@@ -43,8 +45,8 @@ var ensureNodeInCache = function(node, cache) {
   if (key in cache) {
     return cache[key];
   }
-  node.id = node._id;
-  delete node._id;
+  //node.id = node._id;
+  //delete node._id;
   cache[key] = node;
   return node;
 };
@@ -74,33 +76,55 @@ var ensureChildPropertiesSet = function(parent, child) {
   if (!('parent' in child)) {
     child.parent = {'id': parent.id, 'type': parent.type};
   }
-  if (child.hasOwnProperty('content') && !child.hasOwnProperty('numLines')) {
-    var m = child.content.match(/\n/g);
-    if (m) {
-      child.numLines = m.length || 0;
-    } else {
-      child.numLines = 0;
-    }
-  }
+  //if (child.hasOwnProperty('content') && !child.hasOwnProperty('numLines')) {
+    //var m = child.content.match(/\n/g);
+    //if (m) {
+      //child.numLines = m.length || 0;
+    //} else {
+      //child.numLines = 0;
+    //}
+  //}
 };
 
 var getKey = function(node) {
-  return node['_id'];
+  return node['id'];
 };
 
 var getPolymorphicProperties= function(node) {
   return { 'id': node.id, 'type': node.type };
 };
 
-var extractDataIfPresent = function(record, key, labelKey) {
-  var data, label;
-  if (key in record && record[key]) {
-    data = record[key].data;
-    label = record[labelKey][0].toLowerCase();
-    data.type = label;
-    return data;
+var extractDataIfPresent = function(record, recordType) {
+  //var data = {}, label,
+      //map = keyToValues[recordType] key;
+  var data = {};
+
+  if (recordType === parentType) {
+    data.id = record.parentId;
+    data.name = record.parentName;
+    data.type = record.parentLabels[0].toLowerCase();
+    data.isRoot = record.isRoot;
+  } else if (recordType === childType) {
+    data.id = record.childId;
+    data.name = record.childName;
+    data.type = record.childLabels[0].toLowerCase();
+    data.isRoot = false;
   }
-  return null;
+
+  if (data.type === 'file') {
+    data.content = '';
+    data.numLines = 10;
+  }
+  return data;
+
+    //if (key in record && record[key]) {
+      //data = record[key].data;
+      //label = record[labelKey][0].toLowerCase();
+      //data.type = label;
+      //return data;
+    //}
+  //}
+  //return null;
 };
 
 var parseDataForForceDiagram = function(resultsArray, callback) {

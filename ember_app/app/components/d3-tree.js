@@ -8,7 +8,6 @@ export default Em.Component.extend({
   },
 
   clickHandler: function(el, callback) {
-    console.log("element was clicked: ", el);
     if (el.type === 'directory') {
       this.sendAction('clickedDir', el);
       //this.store.find('directory', el.emberId).then(function(d) {
@@ -22,8 +21,6 @@ export default Em.Component.extend({
 
   update: function(root) {
     var elementId = '#' + this.get('elementId');
-    console.log("root: ", root);
-    console.log("elementId: ", elementId);
     // TODO replace with Em.isEmpty(root);
     var isEmpty = true;
     for (var key in root) {

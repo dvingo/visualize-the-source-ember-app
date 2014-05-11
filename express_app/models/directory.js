@@ -1,5 +1,4 @@
 var neo4j = require('neo4j');
-var deepcopy = require('deepcopy');
 var db = new neo4j.GraphDatabase(
   process.env['NEO4J_URL'] ||
   'http://localhost:7474'
@@ -23,13 +22,17 @@ Directory.prototype.toJson = function() {
 var query = [
    "MATCH (d:Directory)<-[:PARENT]-(child)",
    "WHERE d._id = {directoryId}",
-   "RETURN d AS parent, labels(d) as parent_labels, child as child, labels(child) as child_labels",
+   "RETURN d._id AS parentId, d.name AS parentName, ",
+          "labels(d) as parentLabels, true AS isRoot, ",
+          "child._id AS childId, child.name AS childName, labels(child) as childLabels",
    "UNION",
    //"MATCH (d:Directory)<-[:PARENT*1..2]-(parent)<-[:PARENT]-(child)",
    "MATCH (d:Directory)<-[:PARENT*]-(parent)<-[:PARENT]-(child)",
    //"MATCH (d:Directory)<-[:PARENT]-(parent)<-[:PARENT]-(child)",
    "WHERE d._id = {directoryId}",
-   "RETURN parent AS parent, labels(parent) as parent_labels, child as child, labels(child) as child_labels"
+   "RETURN parent._id AS parentId, parent.name AS parentName, ",
+          "labels(parent) as parentLabels, false AS isRoot, ",
+          "child._id AS childId, child.name AS childName, labels(child) as childLabels"
 ].join('\n');
 
 Directory.getTree = function(directoryId, callback) {
