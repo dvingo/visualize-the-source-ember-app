@@ -1,0 +1,28 @@
+{
+  "name": "ember-qunit",
+  "authors": [
+    "Stefan Penner",
+    "Ryan Florence"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test"
+  ],
+  "dependencies": {
+    "ember": "^1.3.0",
+    "ember-data": "~1.0.0-beta.7"
+  },
+  "homepage": "https://github.com/rpflorence/ember-qunit",
+  "_release": "15a976a21b",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "15a976a21ba98750b05d080203a3fed99c52b855"
+  },
+  "_source": "https://github.com/rpflorence/ember-qunit.git",
+  "_target": "master",
+  "_originalSource": "https://github.com/rpflorence/ember-qunit.git"
+}

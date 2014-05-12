@@ -1,0 +1,25 @@
+{
+  "name": "deepcopy",
+  "version": "0.3.2",
+  "main": "./deepcopy.min.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components"
+  ],
+  "devDependencies": {
+    "expect": "~0.2",
+    "mocha": "~1.12"
+  },
+  "homepage": "https://github.com/sasaplus1/deepcopy.js",
+  "_release": "0.3.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.3.2",
+    "commit": "239cc7fc4e742c8a5daf2b16adbc863b1e206466"
+  },
+  "_source": "git://github.com/sasaplus1/deepcopy.js.git",
+  "_target": "~0.3.2",
+  "_originalSource": "deepcopy",
+  "_direct": true
+}
