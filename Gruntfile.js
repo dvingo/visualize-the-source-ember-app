@@ -252,5 +252,49 @@ module.exports = function(grunt) {
     grunt.file.mkdir('tmp/result');
   });
 
+
+  _.extend(config, {
+    aws: grunt.file.readJSON('./grunt-aws.json'),
+    fileObj: grunt.file.readJSON('./min_files.json'),
+    s3: {
+      options: {
+        key: '<%= aws.key %>',
+        secret: '<%= aws.secret %>',
+        bucket: '<%= aws.bucket %>',
+        access: 'public-read',
+        headers: {
+          // Two Year cache policy (1000 * 60 * 60 * 24 * 730)
+          "Cache-Control": "max-age=630720000, public",
+          "Expires": new Date(Date.now() + 63072000000).toUTCString()
+        }
+      },
+      appPut: {
+        sync: [
+          {
+            src: 'dist/assets/<%= fileObj.config %>',
+            dest: '<%= fileObj.config %>',
+            options: { gzip: true }
+          },
+          {
+            src: 'dist/assets/<%= fileObj.vendor %>',
+            dest: '<%= fileObj.vendor %>',
+            options: { gzip: true }
+          },
+          {
+            src: 'dist/assets/<%= fileObj.app %>',
+            dest: '<%= fileObj.app %>',
+            options: { gzip: true }
+          },
+          {
+            src: 'dist/assets/<%= fileObj.css %>',
+            dest: '<%= fileObj.css %>',
+            options: { gzip: true }
+          }
+        ]
+      }
+    }
+  });
+
   grunt.initConfig(config);
+
 };
