@@ -1,6 +1,5 @@
-{
-  "config": "03258c8c.config.min.js",
-  "vendor": "ba2ddee1.vendor.min.js",
-  "app": "ca84dc23.app.min.js",
-  "css": "dc2ff613.app.min.css"
-}
+---
+config: 03258c8c.config.min.js
+vendor: ba2ddee1.vendor.min.js
+app: ca84dc23.app.min.js
+css: dc2ff613.app.min.css

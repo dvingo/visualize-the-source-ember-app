@@ -255,7 +255,7 @@ module.exports = function(grunt) {
 
   _.extend(config, {
     aws: grunt.file.readJSON('./grunt-aws.json'),
-    fileObj: grunt.file.readJSON('./min_files.json'),
+    fileObj: grunt.file.readYAML('./min_files.yml'),
     s3: {
       options: {
         key: '<%= aws.key %>',
