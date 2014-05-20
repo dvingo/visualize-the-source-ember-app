@@ -1,8 +1,10 @@
+import { clearId, toggleChildren } from '../tree/util';
 var forceTree = (function() {
   var width = 960,
       height = 500,
       clickCallback,
-      clickContext;
+      clickContext,
+      j = 0;
 
   function inner(selection) {
     selection.each(function(root, i) {
@@ -10,6 +12,8 @@ var forceTree = (function() {
           svgGroup = svg.append('g'),
           link = svgGroup.selectAll(".link"),
           node = svgGroup.selectAll(".node"),
+          circle = svgGroup.selectAll(".node circle"),
+          text = svgGroup.selectAll(".node text"),
           zoomListener;
 
       svg.attr("width", width)
@@ -17,16 +21,18 @@ var forceTree = (function() {
 
       var force = d3.layout.force()
           .size([width, height])
+          .linkDistance(40)
           .on("tick", tick);
 
+      clearId(root);
       update();
 
       zoomListener = d3.behavior.zoom().scaleExtent([0.1, 3]).on("zoom", zoom);
       svg.call(zoomListener);
 
       function update() {
-        var nodes = flatten(root),
-            links = d3.layout.tree().links(nodes);
+        var nodes = flatten(root);
+        var links = d3.layout.tree().links(nodes);
 
         // Restart the force layout.
         force
@@ -35,7 +41,7 @@ var forceTree = (function() {
             .start();
 
         // Update the links…
-        link = link.data(links, function(d) { return d.target.id; });
+        link = link.data(links, function(d) { return d.target.id || (d.target.id = ++j); });
 
         // Exit any old links.
         link.exit().remove();
@@ -49,53 +55,30 @@ var forceTree = (function() {
             .attr("y2", function(d) { return d.target.y; });
 
         // Update the nodes…
-        node = node.data(nodes, function(d) { return d.id; }).style("fill", color);
+        node = node.data(nodes, function(d) { return d.id; });
 
         // Exit any old nodes.
         node.exit().remove();
 
-        // Enter any new nodes.
-        node.enter().append("circle")
+        var nodeEnter = node.enter().append("g")
             .attr("class", "node")
-            .attr("cx", function(d) { return d.x; })
-            .attr("cy", function(d) { return d.y; })
-            .attr("r", function(d) { return Math.sqrt(d.numLines) / 2 || 4.5; })
-            .style("fill", color)
-            .on("click", click)
-            .call(force.drag);
+            .on("click", click);
+
+        nodeEnter.append("circle")
+            .attr("r", function(d) { return 2; })
+            .style("fill", color);
+
+        nodeEnter.append("text")
+            .attr("x", function(d) { return 5; })
+            .attr("y", function(d) { return 5; })
+            .attr("font-size", "8px")
+            .text(function(d) { return d.name; });
+
+        nodeEnter.call(force.drag);
       }
 
       function zoom() {
         svgGroup.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-        //svgGroup.selectAll('g.node').filter(function(d) {
-          //return d.type === 'directory';
-        //}).selectAll('text').attr("transform", function(t, i) {
-          //var s = d3.event.scale, factor = 1, vertOffset = false, translate = 0,
-              //returnString = '';
-          //if (s >= 0.9) {
-            //factor = 1;
-          //} else if (s >= 0.5) {
-            //factor = 1.2;
-          //} else if (s >= 0.4) {
-            //factor = 1.3;
-          //} else if (s >= 0.3) {
-            //factor = 2;
-          //} else if (s >= 0.2) {
-            //translate = 2 * -i;
-            //factor = 3;
-          //} else {
-            //translate = 2 * -i;
-            //factor = 6;
-          //}
-          //returnString = "scale(" + factor + ")";
-          //if (vertOffset) {
-            //returnString = "scale(" + factor + ")" + "translate(" + translate + ")";
-          //}
-          //if (orientation === 'horizontal') {
-            //returnString += svgRotate(20,0,0);
-          //}
-          //return returnString;
-        //});
       }
 
       function tick() {
@@ -104,8 +87,9 @@ var forceTree = (function() {
             .attr("x2", function(d) { return d.target.x; })
             .attr("y2", function(d) { return d.target.y; });
 
-        node.attr("cx", function(d) { return d.x; })
-            .attr("cy", function(d) { return d.y; });
+         node.attr("transform", function(d, i) {
+          return "translate(" + d.x + "," + d.y + ")";
+         });
       }
 
       // Color leaf nodes orange, and packages white or blue.
@@ -116,33 +100,47 @@ var forceTree = (function() {
       // Toggle children on click.
       function click(d) {
         if (!d3.event.defaultPrevented) {
-          clickCallback.call(clickContext, d);
-          if (d.children) {
-            d._children = d.children;
-            d.children = null;
-          } else {
-            d.children = d._children;
-            d._children = null;
-          }
+          if (clickCallback) { clickCallback.call(clickContext, d); }
+          toggleChildren(d);
           update();
         }
       }
 
       // Returns a list of all nodes under the root.
       function flatten(root) {
-        var nodes = [], i = 0;
-
-        function recurse(node) {
-          if (node.children) node.children.forEach(recurse);
-          if (!node.id) node.id = ++i;
-          nodes.push(node);
+        var nodes = [], level, levels = [], currentDepth = 0, maxDepth = 10;
+        nodes.push(root);
+        levels.push(root.children);
+        while (currentDepth < maxDepth) {
+          level = levels[currentDepth];
+          if (!level) { break; }
+          addChildren(level);
+          addNextLevel(level);
+          currentDepth += 1;
         }
-        recurse(root);
         return nodes;
+
+        function addChildren(children) {
+          var deleteChildren = (currentDepth + 1) === maxDepth;
+          children.forEach(function(child) {
+            if (deleteChildren && child.children) {
+              delete child.children;
+            }
+            nodes.push(child);
+          });
+        }
+
+        function addNextLevel(currentLevel) {
+          var nextLevel = levels[currentDepth + 1] = [];
+          currentLevel.forEach(function(node) {
+            if (!node.children) return;
+            node.children.forEach(function(child) {
+              nextLevel.push(child);
+            });
+          });
+        }
       }
-
     });
-
   }
 
   inner.clickCallback = function(context, callback) {

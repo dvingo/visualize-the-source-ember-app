@@ -15,7 +15,7 @@ function toggleChildren(d) {
   if (d.children) {
     d._children = d.children;
     d.children = null;
-  } else {
+  } else if (d._children) {
     d.children = d._children;
     d._children = null;
   }
